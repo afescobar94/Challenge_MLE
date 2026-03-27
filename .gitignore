@@ -3,3 +3,4 @@
 reports/
 tests/__pycache__
 tests/model/__pycache__
+.coverage
