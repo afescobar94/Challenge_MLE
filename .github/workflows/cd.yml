@@ -97,7 +97,31 @@ jobs:
               "${{ env.IMAGE_NAME }}"
 
             if command -v curl >/dev/null 2>&1; then
-              curl -fsS http://127.0.0.1:8000/health >/dev/null
+              HEALTH_URL="http://127.0.0.1:8000/health"
+              MAX_RETRIES=30
+              RETRY_DELAY=2
+              HEALTH_OK=0
+
+              for i in $(seq 1 "$MAX_RETRIES"); do
+                if curl -fsS "$HEALTH_URL" >/dev/null; then
+                  echo "Health check succeeded on attempt $i."
+                  HEALTH_OK=1
+                  break
+                fi
+                echo "Health check attempt $i/$MAX_RETRIES failed; waiting ${RETRY_DELAY}s..."
+                sleep "$RETRY_DELAY"
+              done
+
+              if [ "$HEALTH_OK" -ne 1 ]; then
+                echo "Health check failed after $MAX_RETRIES attempts."
+                echo "=== docker ps ==="
+                docker ps -a
+                echo "=== container state ==="
+                docker inspect "${{ env.CONTAINER_NAME }}" --format '{{json .State}}' || true
+                echo "=== container logs ==="
+                docker logs --tail 200 "${{ env.CONTAINER_NAME }}" || true
+                exit 1
+              fi
             fi
 
       - name: Deployment summary
