@@ -1,6 +1,7 @@
 import pandas as pd
 
 from typing import Tuple, Union, List
+from pathlib import Path
 from sklearn.linear_model import LogisticRegression
 
 class DelayModel:
@@ -106,4 +107,15 @@ class DelayModel:
         Returns:
             (List[int]): predicted targets.
         """
-        return
+        if self._model is None:
+            data_path = Path(__file__).resolve().parents[1] / "data" / "data.csv"
+            training_data = pd.read_csv(data_path)
+            training_features, training_target = self.preprocess(
+                data=training_data,
+                target_column="delay",
+            )
+            self.fit(features=training_features, target=training_target)
+
+        aligned_features = features.reindex(columns=self._feature_columns, fill_value=0)
+        predictions = self._model.predict(aligned_features)
+        return [int(prediction) for prediction in predictions]
