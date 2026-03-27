@@ -1,1 +1,5 @@
 .vscode
+/challenge/__pycache__
+reports/
+tests/__pycache__
+tests/model/__pycache__
