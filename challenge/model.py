@@ -2,7 +2,7 @@ import pandas as pd
 
 from typing import Tuple, Union, List
 from pathlib import Path
-from sklearn.linear_model import LogisticRegression
+import xgboost as xgb
 
 class DelayModel:
 
@@ -84,14 +84,13 @@ class DelayModel:
 
         n_y0 = int((target_series == 0).sum())
         n_y1 = int((target_series == 1).sum())
-        total = len(target_series)
+        scale = n_y0 / n_y1
 
-        class_weight = {
-            1: n_y0 / total,
-            0: n_y1 / total,
-        }
-
-        self._model = LogisticRegression(class_weight=class_weight, max_iter=1000)
+        self._model = xgb.XGBClassifier(
+            random_state=1,
+            learning_rate=0.01,
+            scale_pos_weight=scale,
+        )
         self._model.fit(features, target_series)
 
     def predict(
