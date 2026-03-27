@@ -23,7 +23,7 @@ install:		## Install dependencies
 	pip install -r requirements-test.txt
 	pip install -r requirements.txt
 
-STRESS_URL = http://127.0.0.1:8000 
+STRESS_URL = http://54.197.165.200:8000 
 IMAGE_NAME = challenge-mle
 CONTAINER_NAME = airline-delay
 .PHONY: stress-test
