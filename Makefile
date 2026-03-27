@@ -24,6 +24,8 @@ install:		## Install dependencies
 	pip install -r requirements.txt
 
 STRESS_URL = http://127.0.0.1:8000 
+IMAGE_NAME = challenge-mle
+CONTAINER_NAME = airline-delay
 .PHONY: stress-test
 stress-test:
 	# change stress url to your deployed app 
@@ -43,3 +45,16 @@ api-test:			## Run tests and coverage
 .PHONY: build
 build:			## Build locally the python artifact
 	python setup.py bdist_wheel
+
+.PHONY: docker-build
+docker-build:		## Build Docker image
+	docker build -t $(IMAGE_NAME) .
+
+.PHONY: docker-run
+docker-run:		## Run Docker container
+	docker rm -f $(CONTAINER_NAME) >/dev/null 2>&1 || true
+	docker run -d --name $(CONTAINER_NAME) -p 8000:8000 $(IMAGE_NAME)
+
+.PHONY: docker-stop
+docker-stop:		## Stop and remove Docker container
+	docker rm -f $(CONTAINER_NAME) >/dev/null 2>&1 || true
