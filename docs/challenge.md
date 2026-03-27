@@ -200,3 +200,55 @@ make docker-stop
 ```
 
 ## 12. CI/CD Status
+
+The project now includes complete GitHub Actions workflows in:
+
+- `.github/workflows/ci.yml`
+- `.github/workflows/cd.yml`
+
+### CI (`ci.yml`)
+
+Trigger:
+
+- `pull_request` to `main`
+- `push` to `main`
+
+Pipeline:
+
+1. Install dependencies (`requirements-dev.txt`, `requirements-test.txt`, `requirements.txt`)
+2. Run model tests (`make model-test`)
+3. Run API tests (`make api-test`)
+4. Build Docker image (`docker build ...`) as a build validation
+5. Upload test artifacts from `reports/`
+
+### CD (`cd.yml`)
+
+Trigger:
+
+- `push` to `main`
+- manual execution (`workflow_dispatch`)
+
+Pipeline:
+
+1. Re-run tests before deployment
+2. Validate Docker build on GitHub runner
+3. Connect via SSH to AWS EC2
+4. Update source code in server (`git pull --ff-only`)
+5. Build Docker image in EC2
+6. Recreate container (`airline-delay`) on port `8000`
+7. Run health check and publish deployment details in workflow summary
+
+### Required GitHub configuration
+
+`Secrets`:
+
+- `EC2_HOST`: Public IP or DNS of the EC2 instance
+- `EC2_USER`: SSH user on the EC2 instance (for example, `ubuntu`)
+- `EC2_SSH_KEY`: Private SSH key (PEM content) used by GitHub Actions to connect
+
+`Variables` (optional, defaults included in workflow):
+
+- `EC2_SSH_PORT` (default: `22`)
+- `EC2_APP_PATH` (default: `/home/ubuntu/Challenge_MLE`)
+- `IMAGE_NAME` (default: `challenge-mle:latest`)
+- `CONTAINER_NAME` (default: `airline-delay`)
